@@ -1,0 +1,89 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+  UNKNOW
+}
+
+enum UserGender {
+  MALE
+  FEMALE
+  UNKNOW
+}
+
+enum UserStatus {
+  ACTIVE
+  IN_ACTIVE
+  BANNED
+  UNKNOW
+}
+
+enum LessonCategory {
+  LANGUANGES
+  ART
+  SCIENCE
+  SPORT
+}
+
+enum Permission {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+}
+
+model User {
+  id                 String       @id @default(uuid())
+  name               String
+  email              String?      @unique
+  emailVerified      DateTime?
+  image              String?
+  password           String?
+  role               UserRole     @default(UNKNOW)
+  permissions        Permission[] @default([])
+  gender             UserGender   @default(UNKNOW)
+  isTwoFactorEnabled Boolean      @default(false)
+  twoFactorSecret    String?
+  status             UserStatus   @default(UNKNOW)
+  googleId           String?
+
+  apiKey ApiKey[]
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  key       String
+  uuid      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime
+}
+
+model VerificationToken {
+  id      String   @id @default(uuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(uuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
